@@ -22,10 +22,10 @@ pub enum Token {
 
 impl Token {
 
-    fn get_string(&self) -> String {
+    pub fn get_string(&self) -> String {
         match self {
             Token::Dot => String::from("."),
-            Token::Equal => String::from("."),
+            Token::Equal => String::from("="),
             Token::NewLine => String::from("\n"),
             Token::Semicolon => String::from(";"),
             Token::IgnoreBegin => String::from("//#RCFBEGINIGNORE"),

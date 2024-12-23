@@ -1,13 +1,13 @@
 # Rivals Constant Flattener
 
-RCF is a simple, easy-to-use export tool for optimizing constant values in Rivals of Aether characters. RCF will reference values from a user_event file of your choice and bake them directly into your GML files, allowing you to write far more maintainable source code without incurring performance hits from GML's automatic instance checks.
+RCF is a simple, easy-to-use export tool for optimizing constant values in Rivals of Aether characters. RCF will reference values from a source ``user_event`` file of your choice and bake them directly into your project's scripts, allowing you to write far more readable code without incurring performance hits from GML's automatic instance checks.
 
 RCF also comes bundled with tools for easy version changes and automatic file deletion, making it easy to convert your character's development build into an upload-ready state.
 
-> RCF is designed to minimize the risk of file loss. However, it is always good practice to back up your data before using a tool of this nature.
+> RCF is designed to minimize the risk of file loss. However, it is always good practice to back up your data before using a tool of this nature. Do not overwrite your development build with an RCF build!
 
 ## Configuring a project for RCF
-In order to use RCF, you'll need to choose a ``user_event`` script to host your constants. This script should be called from your character's ``init.gml`` file, which will allow you to fully playtest the character in a pre-export state.
+In order to use RCF, you'll need to choose a source ``user_event`` script to host your constants. This script should be called from near the top of your character's ``init.gml`` file, which will allow you to fully playtest the character in a pre-export state.
 
 The ``user_event`` script itself can be written in mostly the same way that you would write an init file. However, there's a few things you should keep in mind when doing so:
 - The RCF ``user_event`` file should only contain constant values. Attempting to alter one of these constants later will cause the RCF export to fail.
