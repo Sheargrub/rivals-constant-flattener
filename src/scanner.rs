@@ -179,7 +179,7 @@ impl RcfScanner {
             self.add_error(&format!("Unterminated string starting at line [{start_line}]."))
         }
         else {
-            let source_slice = &self.source[begin..self.current];
+            let source_slice = &self.source[begin-1..self.current+1];
             let input_string: String = source_slice.iter().collect();
             self.add_token(Token::Literal(input_string));
             self.current += 1;
@@ -204,7 +204,7 @@ impl RcfScanner {
 
     fn process_identifier(&mut self) {
         let begin = self.current - 1; // Since the letter itself triggers this function
-        while !self.is_at_end() && is_alphanumeric(self.source[self.current]) {
+        while !self.is_at_end() && is_identifier_char(self.source[self.current]) {
             self.current += 1;
         };
         let source_slice = &self.source[begin..self.current];
@@ -239,7 +239,7 @@ fn is_number(c: char) -> bool {
 
 fn is_alpha(c: char) -> bool {
     match c {
-        'A'..='z' => true,
+        'A'..='Z'|'a'..='z' => true,
         _ => false,
     }
 }

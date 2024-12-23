@@ -17,10 +17,10 @@ fn main() {
     println!("{:?}", map);
 
 
-    let test_tgt_path = "./test_inputs/got_hit.gml";
+    let test_tgt_path = "./test_inputs/init.gml";
     let test_tgt = fs::read_to_string(test_tgt_path).expect("Read failed");
     let mut s = RcfScanner::new(&test_tgt);
     let tokens = s.scan_tokens().expect("Scan failed");
-    let mut f = Flattener::new(2, false, true);
+    let mut f = Flattener::new(2, true, true);
     println!("\n{}", f.flatten_program(&tokens, &map).expect("Flattening failed"));
 }

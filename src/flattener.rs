@@ -8,8 +8,6 @@ pub struct Flattener {
     skip_comments : bool,
     deformat_active : bool,
     needs_space : bool,
-    escape_handled : bool,
-    ignoring: bool,
 }
 
 impl Flattener {
@@ -17,63 +15,136 @@ impl Flattener {
     pub fn new(user_event: u8, skip_whitespace: bool, skip_comments: bool) -> Flattener {
         let deformat_active = false;
         let needs_space = false;
-        let ignoring = false;
-        let escape_handled = false;
-        Flattener{ user_event, skip_whitespace, skip_comments, deformat_active, needs_space, ignoring, escape_handled }
+        Flattener{ user_event, skip_whitespace, skip_comments, deformat_active, needs_space }
     }
 
     pub fn flatten_program(&mut self, ts: &Vec<Token>, map: &HashMap<String, String>) -> Result<String, String> {
         let mut output = String::new();
-        let mut stack: Vec<&Token> = Vec::new();
+        let mut stack = String::new();
+        let mut stack_pushable = false;
+        let mut ignoring = false;
+        let mut escape_handled = false;
         for t in ts {
-            if self.ignoring { match t {
-                IgnoreEnd => self.ignoring = false,
+            if ignoring { match t {
+                IgnoreEnd => ignoring = false,
                 _ => (),
             } } else { match t {
-                IgnoreBegin => self.ignoring = true,
-                IgnoreEnd => return Err(String::from("Reached unpaired end-ignore declaration")),
+                IgnoreBegin => {
+                    if stack != "" {
+                        output.push_str(&stack);
+                        stack = String::new();
+                    }
+                    ignoring = true;
+                }
+                IgnoreEnd => {
+                    if stack != "" {
+                        output.push_str(&stack);
+                        stack = String::new();
+                    }
+                    return Err(String::from("Reached unpaired end-ignore declaration"));
+                }
 
-                DeformatBegin => self.deformat_active = true,
-                DeformatEnd => self.deformat_active = false,
+                DeformatBegin => {
+                    if stack != "" {
+                        output.push_str(&stack);
+                        stack = String::new();
+                    }
+                    self.deformat_active = true;
+                }
+                DeformatEnd => {
+                    if stack != "" {
+                        output.push_str(&stack);
+                        stack = String::new();
+                    }
+                    self.deformat_active = false;
+                }
 
                 NewLine => {
+                    if stack != "" {
+                        output.push_str(&stack);
+                        stack = String::new();
+                    }
                     if !self.skips_whitespace() {
                         output.push('\n');
-                    } else if !self.escape_handled {
+                    } else if !escape_handled {
                         output.push('\n');
-                        self.escape_handled = true;
+                        escape_handled = true;
                     }
                 }
                 Semicolon => {
+                    if stack != "" {
+                        output.push_str(&stack);
+                        stack = String::new();
+                    }
                     if !self.skips_whitespace() {
                         output.push(';');
-                    } else if !self.escape_handled {
+                    } else if !escape_handled {
                         output.push(';');
-                        self.escape_handled = true;
+                        escape_handled = true;
                     }
                 }
                 Whitespace(s) => {
+                    if stack != "" {
+                        output.push_str(&stack);
+                        stack = String::new();
+                    }
                     if !self.skips_whitespace() {
                         output.push_str(&s);
                     }
                 },
 
                 LongComment(s) => {
+                    if stack != "" {
+                        output.push_str(&stack);
+                        stack = String::new();
+                    }
                     if !self.skips_comments() {
                         output.push_str(&s);
-                        self.escape_handled = false;
+                        escape_handled = false;
                     }
                 },
                 ShortComment(s) => {
+                    if stack != "" {
+                        output.push_str(&stack);
+                        stack = String::new();
+                    }
                     if !self.skips_comments() {
                         output.push_str(&s);
-                        self.escape_handled = false;
+                        escape_handled = false;
                     }
                 },
+
+                Identifier(s) => {
+                    let query = map.get(s);
+                    if let Some(val) = query {
+                        // Match should correspond to a constant,
+                        // so toss out the reference stack.
+                        output.push_str(&stack);
+                        output.push_str(&val);
+                        stack = String::new();
+                    }
+                    else {
+                        stack.push_str(&s);
+                    }
+                    escape_handled = false;
+                },
+
+                Dot => {
+                    if stack != "" {
+                        stack.push('.');
+                    } else {
+                        output.push('.');
+                    }
+                    escape_handled = false;
+                }
                 
                 _ => {
+                    if stack != "" {
+                        output.push_str(&stack);
+                        stack = String::new();
+                    }
                     output.push_str(&t.get_string());
-                    self.escape_handled = false;
+                    escape_handled = false;
                 },
             } };
         }

@@ -50,7 +50,7 @@ HG_IS_CRITICAL = 80;
 HG_PROJECTILE_FAKE_HIT = 81; // disables certain on-hit behavior, such as dspecial cooldown updates
 HG_STRONG_FINISHER = 82;
 HG_IS_BLAST = 83;
-HG_IS_GUNSHOT = 84; // applies followup explosion while Brilliant Behemoth is active. should only be used on finishers
+HG_IS_GUNSHOT = 2 * (20 + 22); // applies followup explosion while Brilliant Behemoth is active. should only be used on finishers
 
 // ITEM -> Item indices
 ITEM_CROWBAR        = 0;
@@ -329,7 +329,7 @@ RJETPACK_GRAV_SPEED_BASE = -0.05; // Just a flat modifier, no scaling here
 // Fireman's Boots
 FIREBOOTS_THRESHOLD = 26; // Number of pixels walked to generate a fire instance
 FIREBOOTS_PARRY_LOCKOUT = 180;
-FIREBOOTS_HIT_LOCKOUT = 20;
+FIREBOOTS_HIT_LOCKOUT = 5  *2 *  2;
 FIREBOOTS_DAMAGE = 4;
 
 // The Ol' Lopper
