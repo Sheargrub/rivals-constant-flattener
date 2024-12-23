@@ -8,6 +8,8 @@ pub enum Token {
     Semicolon, // Also terminators, but more opinionated
     IgnoreBegin,
     IgnoreEnd,
+    DeformatBegin,
+    DeformatEnd,
     Symbol(String),
     OpenBracket(String),
     CloseBracket(String),
@@ -28,6 +30,8 @@ impl Token {
             Token::Semicolon => String::from(";"),
             Token::IgnoreBegin => String::from("//#RCFBEGINIGNORE"),
             Token::IgnoreEnd => String::from("//#RCFENDIGNORE"),
+            Token::DeformatBegin => String::from("//#RCFBEGINDEFORMAT"),
+            Token::DeformatEnd => String::from("//#RCFENDDEFORMAT"),
 
             Token::Symbol(s) => String::from(s),
             Token::Identifier(s) => String::from(s),

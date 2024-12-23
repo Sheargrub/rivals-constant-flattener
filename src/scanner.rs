@@ -133,6 +133,8 @@ impl RcfScanner {
                 self.add_token( match comment.as_str() {
                     "//#RCFBEGINIGNORE" => Token::IgnoreBegin,
                     "//#RCFENDIGNORE" => Token::IgnoreEnd,
+                    "//#RCFBEGINDEFORMAT" => Token::DeformatBegin,
+                    "//#RCFENDDEFORMAT" => Token::DeformatEnd,
                     c => {
                         let mut out = String::from(c);
                         out.push_str(&whitespace);

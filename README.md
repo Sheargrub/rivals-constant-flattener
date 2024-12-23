@@ -41,3 +41,8 @@ RCF will usually strip all unnecessary files and folders from the root directory
 Entries in the include file consist of their file or folder name, separated by whitespace. Files containing spaces should be enclosed in quotation marks. Note that all of the contents of any included folder will be exported, assuming that they have a supported file type.
 
 > RCF strictly obeys the contents of the include file. As such, deleting entries from the default include file will typically cause problems and is highly discouraged.
+
+### Regional deformatting
+While the "strip comments" and "minimize whitespace" checkboxes are too over-the-top for most use cases, there's some instances where localized segments of formatting will break down after being flattened, such as tab-aligned tables containing a lot of constants. If you'd like to specifically strip comments and whitespace from these areas, you can wrap them in ``//##RCFBEGINDEFORMAT`` and ``//#RCFENDDEFORMAT``.
+
+Of course, this will make the selected region hard to navigate if something needs to be checked on the exported build, so this functionality should preferably only be used to clean up data initializations. It'll also cause an error if used in the RCF source ``user_event``, which doesn't generate any output files to be deformatted.

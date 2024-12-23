@@ -64,6 +64,8 @@ pub fn get_constants_map(source: &Vec<Token>) -> Result<HashMap<String, String>,
             },
 
             IgnoreEnd => return Err(String::from("Reached unpaired end-ignore declaration")),
+            DeformatBegin |
+            DeformatEnd => return Err(String::from("Deformatting is not supported in the RCF user_event")),
 
             Whitespace(_) => (),
             LongComment(_) => (),
@@ -186,7 +188,6 @@ pub fn get_constants_map(source: &Vec<Token>) -> Result<HashMap<String, String>,
         2 => {
             if can_return {
                 map.insert(key.clone(), value.clone()); // value is guaranteed to be non-empty
-                mapper_state = 0;
             } else {
                 return Err(format!("Unexpected end-of-file in assignment for {}", key));
             }
