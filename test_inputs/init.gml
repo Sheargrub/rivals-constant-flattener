@@ -792,3 +792,6 @@ bubble_y                        = 8;
 set_victory_portrait(sprite_get("portrait_base"));
 
 init_complete = true;
+
+one two
+1 1 1 1 IG_RARITY "waow";
