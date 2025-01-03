@@ -16,9 +16,6 @@ pub fn do_test_flatten() {
 
 pub fn do_test_fetch() {
     let src = r"C:\Users\Shear\Documents\Workshop Files\commando-rcf-src";
-    let project_type = fetch_project::get_project_type(src).expect("Fetch failed");
-    let include = fetch_project::get_include(src, project_type).expect("Include failed");
-
-    println!("{:?}\n", project_type);
-    println!("{}\n", include);
+    let result = fetch_project::fetch_project(src, 2);
+    println!("{:?}", result);
 }

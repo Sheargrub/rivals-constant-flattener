@@ -1,6 +1,8 @@
 
 use std::fs;
+use std::io;
 use std::fs::File;
+use std::vec::Vec;
 
 pub fn get_project_type(root: &str) -> Option<u8> {
     let mut config_path = String::from(root);
@@ -77,41 +79,85 @@ pub fn get_include(root: &str, project_type: u8) -> Result<String, String> {
 
 }
 
-fn make_raw_include(project_type: u8) -> &'static str {
-    match project_type {
-        0 => {
-"fonts/*.ini
-scripts/*.gml
-scripts/attacks/*.gml
-sounds/*.ogg
-sprites/*.png
-config.ini
-charselect.png
-hud.png
-hurt.png
-icon.png
-offscreen.png
-portrait.png
-preview.png
-result_small.png
-charselect.ogg"
-        },
-        1 | 2 | 3 => todo!(),
-        _ => panic!("Unexpected input to make_include()"),
-    }
-}
-
-pub fn fetch_project(root: &str) -> Result<(), String> {
+pub fn fetch_project(root: &str, user_event: u8) -> Result<(Vec<String>, String), String> {
     // Ensure that valid project is being fetched
     let project_type = get_project_type(root);
     if let None = project_type {
         return Err(format!("Could not find a valid project at directory {}", root));
     }
+    let project_type = project_type.unwrap();
 
     // Get include file
-    todo!();
+    let include = get_include(root, project_type);
 
-    // Get all included files
+    // Get all files (TODO: filter by include)
+    let ue_name = format!("user_event{}.gml", user_event);
+    match visit_folder(root, &ue_name) {
+        Ok((file_paths, Some(ue_path))) => Ok((file_paths, ue_path)),
+        Ok((file_paths, None)) => {
+            println!("{:?}", file_paths);
+            Err(format!("Could not locate {}", ue_name))
+        },
+        Err(_) => Err(format!("Unknown error with project at directory {}", root)),
+    }
 
-    Ok(())
+}
+
+fn visit_folder(root: &str, user_event: &str) -> Result<(Vec<String>, Option<String>), String> {
+    let src_dir = fs::read_dir(root).expect(&format!("Could not open source directory {}", root));
+    let mut file_paths = Vec::new();
+    let mut ue_path = None;
+
+    for entry in src_dir {
+        let dir = entry.expect("Reached invalid directory entry");
+        let path = dir.path();
+        let path_str = path.to_str().expect("TODO");
+
+        if path.is_dir() {
+            match visit_folder(path_str, user_event) {
+                Ok((mut sub_paths, Some(sub_ue))) => {
+                    file_paths.append(&mut sub_paths);
+                    ue_path = Some(sub_ue);
+                },
+                Ok((mut sub_paths, None)) => {
+                    file_paths.append(&mut sub_paths);
+                },
+                Err(_) => {
+                    return Err(format!("Unknown error with project at directory {}", path_str));
+                },
+            }
+        } else {
+            if dir.file_name().to_str() == Some(user_event) {
+                ue_path = Some(String::from(path_str));
+            } else {
+                file_paths.push(String::from(path_str));
+            }
+        }
+    }
+
+    Ok((file_paths, ue_path))
+}
+
+fn make_raw_include(project_type: u8) -> &'static str {
+    match project_type {
+        0 => {
+"./fonts/*.ini
+./scripts/*.gml
+./scripts/attacks/*.gml
+./sounds/*.ogg
+./sprites/*.png
+./config.ini
+./charselect.png
+./hud.png
+./hurt.png
+./icon.png
+./offscreen.png
+./portrait.png
+./preview.png
+./result_small.png
+./charselect.ogg"
+        },
+        1 | 2 | 3 => todo!(),
+        _ => panic!("Unexpected input to make_include()"),
+    }
 }
