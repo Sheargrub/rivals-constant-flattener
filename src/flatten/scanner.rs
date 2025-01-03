@@ -1,5 +1,6 @@
-use crate::token::Token;
-use crate::token::Token::*;
+use crate::flatten as flt;
+use flt::token::Token;
+use flt::token::Token::*;
 
 pub struct RcfScanner {
     source: Vec<char>,

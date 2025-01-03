@@ -1,5 +1,6 @@
-use crate::token::Token;
-use crate::token::Token::*;
+use crate::flatten as flt;
+use flt::token::Token;
+use flt::token::Token::*;
 use std::collections::HashMap;
 
 pub fn get_constants_map(source: &Vec<Token>) -> Result<HashMap<String, String>, String> {

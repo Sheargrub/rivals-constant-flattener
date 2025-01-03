@@ -15,6 +15,7 @@ rainfontbig = font_get("_rfontbig");
 
 //=-(                        ~~//** CONSTANTS **//~~                       )-=//
 user_event(2); // Lots of primitive constants are defined in here. These should be baked into the code before release (using the planned tool)
+user_event(0); // This should not be eaten!
 
 // Non-primitive constants are below. (mostly text strings)
 rarity_names = ["Common", "Uncommon", "Rare"];
@@ -792,6 +793,3 @@ bubble_y                        = 8;
 set_victory_portrait(sprite_get("portrait_base"));
 
 init_complete = true;
-
-one two
-1 1 1 1 IG_RARITY "waow";
