@@ -1,8 +1,9 @@
-
 use std::fs;
 use std::fs::File;
 use std::vec::Vec;
-use crate::include_list::IncludeList;
+
+use crate::export_project as rcf;
+use rcf::include_list::IncludeList;
 
 pub fn get_project_type(root: &str) -> Option<u8> {
     let mut config_path = String::from(root);
@@ -63,7 +64,6 @@ pub fn get_include(root: &str, project_type: u8) -> Result<IncludeList, String> 
 
     // If include file does not exist, create it
     if let Err(_) = File::open(&include_path) {
-        println!("DEBUG: making include file.");
         let f = fs::write(&include_path, make_raw_include(project_type));
         if let Err(_) = f {
             return Err(format!("Could not write include file to project in directory {}", root));
@@ -94,7 +94,7 @@ pub fn fetch_project(root: &str, user_event: u8) -> Result<(Vec<String>, String)
     let ue_name = format!("user_event{}.gml", user_event);
     match visit_folder(root, root, &ue_name, &incl) {
         Ok((file_paths, Some(ue_path))) => Ok((file_paths, ue_path)),
-        Ok((file_paths, None)) => {
+        Ok((_, None)) => {
             Err(format!("Could not locate {}", ue_name))
         },
         Err(_) => Err(format!("Unknown error with project at directory {}", root)),
@@ -115,8 +115,6 @@ fn visit_folder(root: &str, cur: &str, user_event: &str, incl: &Box<IncludeList>
         let name = name.to_str().expect("Unexpected error when getting file name");
 
         if path.is_dir() {
-            println!("{}", path_str);
-            println!("{:?}", incl.get_folder(name));
             if let Some(sub_incl) = incl.get_folder(name) {
                 match visit_folder(root, path_str, user_event, sub_incl) {
                     Ok((mut sub_paths, Some(sub_ue))) => {
@@ -133,9 +131,6 @@ fn visit_folder(root: &str, cur: &str, user_event: &str, incl: &Box<IncludeList>
             }
         }
         else if path.is_file() {
-            println!("> {}", path_str);
-            println!("> {:?}", incl);
-
             let mut extension = String::from(name);
             if let Some(e) = path.extension() {
                 let e_str = e.to_str().expect("Unexpected error when getting file extension");

@@ -19,7 +19,8 @@ impl AllowType {
     }
 }
 
-use crate::include_list::AllowType::*;
+use crate::export_project as rcf;
+use rcf::include_list::AllowType::*;
 
 #[derive(Debug)]
 pub struct IncludeList {

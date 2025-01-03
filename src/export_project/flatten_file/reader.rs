@@ -1,4 +1,4 @@
-use crate::flatten as flt;
+use crate::export_project::flatten_file as flt;
 use flt::token::Token;
 use flt::token::Token::*;
 use std::collections::HashMap;

@@ -1,4 +1,4 @@
-use crate::flatten as flt;
+use crate::export_project::flatten_file as flt;
 use flt::token::Token;
 use flt::token::Token::*;
 
@@ -243,10 +243,6 @@ fn is_alpha(c: char) -> bool {
         'A'..='Z'|'a'..='z' => true,
         _ => false,
     }
-}
-
-fn is_alphanumeric(c: char) -> bool {
-    is_alpha(c) || is_number(c)
 }
 
 fn is_identifier_char(c: char) -> bool {
