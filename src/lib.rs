@@ -1,5 +1,7 @@
 pub mod flatten;
 pub mod fetch_project;
+pub mod file_list;
+pub mod include_list;
 
 use std::fs;
 
@@ -14,8 +16,14 @@ pub fn do_test_flatten() {
     println!("\n{}", flatten::flatten(&test_tgt, &map, 2, true, true).expect("Flattening failed"));
 }
 
+pub fn do_test_include() {
+    let src_path = "./test_inputs/rcf_include.txt";
+    let src = fs::read_to_string(src_path).expect("Read failed");
+    println!("{:?}", include_list::IncludeList::construct(&src))
+}
+
 pub fn do_test_fetch() {
-    let src = r"C:\Users\Shear\Documents\Workshop Files\commando-rcf-src";
-    let result = fetch_project::fetch_project(src, 2);
+    let src_path = r"C:\Users\Shear\Documents\Workshop Files\commando-rcf-src";
+    let result = fetch_project::fetch_project(src_path, 2);
     println!("{:?}", result);
 }

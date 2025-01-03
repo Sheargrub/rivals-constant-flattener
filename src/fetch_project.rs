@@ -1,8 +1,8 @@
 
 use std::fs;
-use std::io;
 use std::fs::File;
 use std::vec::Vec;
+use crate::include_list::IncludeList;
 
 pub fn get_project_type(root: &str) -> Option<u8> {
     let mut config_path = String::from(root);
@@ -52,7 +52,7 @@ pub fn get_project_type(root: &str) -> Option<u8> {
     }
 }
 
-pub fn get_include(root: &str, project_type: u8) -> Result<String, String> {
+pub fn get_include(root: &str, project_type: u8) -> Result<IncludeList, String> {
     if 3 < project_type { return Err(format!("Invalid project type for project in directory {}", root)) };
 
     let mut include_path = String::from(root);
@@ -72,7 +72,7 @@ pub fn get_include(root: &str, project_type: u8) -> Result<String, String> {
 
     // Now, go ahead and read it in
     if let Ok(s) = fs::read_to_string(&include_path) {
-        Ok(s)
+        Ok(IncludeList::construct(&s)?)
     } else {
         Err(format!("Could not read include file from project in directory {}", root))
     }
@@ -141,21 +141,21 @@ fn visit_folder(root: &str, user_event: &str) -> Result<(Vec<String>, Option<Str
 fn make_raw_include(project_type: u8) -> &'static str {
     match project_type {
         0 => {
-"./fonts/*.ini
-./scripts/*.gml
-./scripts/attacks/*.gml
-./sounds/*.ogg
-./sprites/*.png
-./config.ini
-./charselect.png
-./hud.png
-./hurt.png
-./icon.png
-./offscreen.png
-./portrait.png
-./preview.png
-./result_small.png
-./charselect.ogg"
+"fonts/*.ini
+scripts/*.gml
+scripts/attacks/*.gml
+sounds/*.ogg
+sprites/*.png
+config.ini
+charselect.png
+hud.png
+hurt.png
+icon.png
+offscreen.png
+portrait.png
+preview.png
+result_small.png
+charselect.ogg"
         },
         1 | 2 | 3 => todo!(),
         _ => panic!("Unexpected input to make_include()"),
