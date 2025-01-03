@@ -40,6 +40,8 @@ RCF will usually strip all unnecessary files and folders from the root directory
 
 Entries in the include file consist of their file or folder name, separated by whitespace. Files containing spaces should be enclosed in quotation marks. Note that all of the contents of any included folder will be exported, assuming that they have a supported file type.
 
+Note that * can be used as a wildcard character to denote that files of a given type should be retained. For example, the default include contains the entries ``"scripts/*.gml"`` and ``"scripts/attacks/*.gml"``.
+
 > RCF strictly obeys the contents of the include file. As such, deleting entries from the default include file will typically cause problems and is highly discouraged.
 
 ### Regional deformatting

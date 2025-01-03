@@ -5,9 +5,7 @@ mod flattener;
 
 use crate::flatten as flt;
 use flt::scanner::*;
-use flt::reader::*;
 use flt::flattener::*;
-use flt::token::*;
 use std::collections::HashMap;
 
 pub fn get_constants_map(src: &str) -> Result<HashMap<String, String>, String> {
