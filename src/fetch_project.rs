@@ -88,14 +88,13 @@ pub fn fetch_project(root: &str, user_event: u8) -> Result<(Vec<String>, String)
     let project_type = project_type.unwrap();
 
     // Get include file
-    let include = get_include(root, project_type);
+    let incl = get_include(root, project_type)?;
 
     // Get all files (TODO: filter by include)
     let ue_name = format!("user_event{}.gml", user_event);
-    match visit_folder(root, &ue_name) {
+    match visit_folder(root, root, &ue_name, &incl) {
         Ok((file_paths, Some(ue_path))) => Ok((file_paths, ue_path)),
         Ok((file_paths, None)) => {
-            println!("{:?}", file_paths);
             Err(format!("Could not locate {}", ue_name))
         },
         Err(_) => Err(format!("Unknown error with project at directory {}", root)),
@@ -103,8 +102,8 @@ pub fn fetch_project(root: &str, user_event: u8) -> Result<(Vec<String>, String)
 
 }
 
-fn visit_folder(root: &str, user_event: &str) -> Result<(Vec<String>, Option<String>), String> {
-    let src_dir = fs::read_dir(root).expect(&format!("Could not open source directory {}", root));
+fn visit_folder(root: &str, cur: &str, user_event: &str, incl: &IncludeList) -> Result<(Vec<String>, Option<String>), String> {
+    let src_dir = fs::read_dir(cur).expect(&format!("Could not open source directory {}", cur));
     let mut file_paths = Vec::new();
     let mut ue_path = None;
 
@@ -114,7 +113,7 @@ fn visit_folder(root: &str, user_event: &str) -> Result<(Vec<String>, Option<Str
         let path_str = path.to_str().expect("TODO");
 
         if path.is_dir() {
-            match visit_folder(path_str, user_event) {
+            match visit_folder(root, path_str, user_event, incl) {
                 Ok((mut sub_paths, Some(sub_ue))) => {
                     file_paths.append(&mut sub_paths);
                     ue_path = Some(sub_ue);
@@ -128,14 +127,33 @@ fn visit_folder(root: &str, user_event: &str) -> Result<(Vec<String>, Option<Str
             }
         } else {
             if dir.file_name().to_str() == Some(user_event) {
-                ue_path = Some(String::from(path_str));
+                ue_path = Some(crop_file_name(root, path_str)?);
             } else {
-                file_paths.push(String::from(path_str));
+                file_paths.push(crop_file_name(root, path_str)?);
             }
         }
     }
 
     Ok((file_paths, ue_path))
+}
+
+fn crop_file_name(root: &str, f: &str) -> Result<String, String> {
+    let file_chars = Vec::from_iter(f.chars());
+    let root_chars = Vec::from_iter(root.chars());
+    let (file_len, root_len) = (file_chars.len(), root_chars.len());
+    if file_len <= root_len || &file_chars[0..root_len] != &root_chars {
+        return Err(format!("File {} is not a child of the root directory", f));
+    }
+
+    let mut file_cropped = Vec::new();
+    if file_chars[root_len] == '/' || file_chars[root_len] == '\\' {
+        file_chars[root_len+1..file_len].clone_into(&mut file_cropped);
+    } else {
+        file_chars[root_len..file_len].clone_into(&mut file_cropped);
+    }
+    let file_cropped = file_cropped.iter().collect::<String>();
+
+    Ok(file_cropped)
 }
 
 fn make_raw_include(project_type: u8) -> &'static str {
