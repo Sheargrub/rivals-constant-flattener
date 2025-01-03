@@ -167,7 +167,7 @@ impl Flattener {
                     self.flush_stack(false);
                     self.output.push_str(&s);
 
-                    escape_handled = false;
+                    escape_handled = s == ","; 
                     needs_space = false;
                     closing_user_event = false;
                     eating_semicolon = false;
@@ -181,7 +181,7 @@ impl Flattener {
                         self.output.push_str(&s);
                     }
 
-                    escape_handled = false;
+                    escape_handled = true;
                     needs_space = false;
                     closing_user_event = false;
                     eating_semicolon = false;
@@ -198,7 +198,7 @@ impl Flattener {
                         eating_semicolon = false;
                     }
 
-                    escape_handled = false;
+                    escape_handled = s == "}"; // need to test if ) and ] behave nicely
                     needs_space = false;
                     closing_user_event = false;
                 },
