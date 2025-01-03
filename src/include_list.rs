@@ -120,4 +120,22 @@ impl IncludeList {
         };
     }
 
+    pub fn get_folder(&self, f: &str) -> Option<&Box<IncludeList>> {
+        if let Some(Folder(incl)) = self.contents.get(f) {
+            Some(&incl)
+        } else {
+            None
+        }
+    }
+
+    pub fn file_included(&self, f: &str) -> bool {
+        if let Some(File(_)) = self.contents.get(f) { true }
+        else { false }
+    }
+
+    pub fn type_included(&self, f: &str) -> bool {
+        if let Some(Type(_)) = self.contents.get(f) { true }
+        else { false }
+    }
+
 }

@@ -87,8 +87,8 @@ pub fn fetch_project(root: &str, user_event: u8) -> Result<(Vec<String>, String)
     }
     let project_type = project_type.unwrap();
 
-    // Get include file
-    let incl = get_include(root, project_type)?;
+    // Get include list
+    let incl = Box::new(get_include(root, project_type)?);
 
     // Get all files (TODO: filter by include)
     let ue_name = format!("user_event{}.gml", user_event);
@@ -102,7 +102,7 @@ pub fn fetch_project(root: &str, user_event: u8) -> Result<(Vec<String>, String)
 
 }
 
-fn visit_folder(root: &str, cur: &str, user_event: &str, incl: &IncludeList) -> Result<(Vec<String>, Option<String>), String> {
+fn visit_folder(root: &str, cur: &str, user_event: &str, incl: &Box<IncludeList>) -> Result<(Vec<String>, Option<String>), String> {
     let src_dir = fs::read_dir(cur).expect(&format!("Could not open source directory {}", cur));
     let mut file_paths = Vec::new();
     let mut ue_path = None;
@@ -110,25 +110,43 @@ fn visit_folder(root: &str, cur: &str, user_event: &str, incl: &IncludeList) -> 
     for entry in src_dir {
         let dir = entry.expect("Reached invalid directory entry");
         let path = dir.path();
-        let path_str = path.to_str().expect("TODO");
+        let path_str = path.to_str().expect("Unexpected error when getting file path");
+        let name = dir.file_name();
+        let name = name.to_str().expect("Unexpected error when getting file name");
 
         if path.is_dir() {
-            match visit_folder(root, path_str, user_event, incl) {
-                Ok((mut sub_paths, Some(sub_ue))) => {
-                    file_paths.append(&mut sub_paths);
-                    ue_path = Some(sub_ue);
-                },
-                Ok((mut sub_paths, None)) => {
-                    file_paths.append(&mut sub_paths);
-                },
-                Err(_) => {
-                    return Err(format!("Unknown error with project at directory {}", path_str));
-                },
+            println!("{}", path_str);
+            println!("{:?}", incl.get_folder(name));
+            if let Some(sub_incl) = incl.get_folder(name) {
+                match visit_folder(root, path_str, user_event, sub_incl) {
+                    Ok((mut sub_paths, Some(sub_ue))) => {
+                        file_paths.append(&mut sub_paths);
+                        ue_path = Some(sub_ue);
+                    },
+                    Ok((mut sub_paths, None)) => {
+                        file_paths.append(&mut sub_paths);
+                    },
+                    Err(_) => {
+                        return Err(format!("Unknown error with project at directory {}", path_str));
+                    },
+                }
             }
-        } else {
+        }
+        else if path.is_file() {
+            println!("> {}", path_str);
+            println!("> {:?}", incl);
+
+            let mut extension = String::from(name);
+            if let Some(e) = path.extension() {
+                let e_str = e.to_str().expect("Unexpected error when getting file extension");
+                extension = String::from(".");
+                extension.push_str(e_str);
+            }
+
             if dir.file_name().to_str() == Some(user_event) {
                 ue_path = Some(crop_file_name(root, path_str)?);
-            } else {
+            }
+            else if incl.file_included(name) || incl.type_included(&extension) {
                 file_paths.push(crop_file_name(root, path_str)?);
             }
         }
