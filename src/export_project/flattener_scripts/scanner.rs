@@ -1,4 +1,4 @@
-use crate::export_project::flatten_file as flt;
+use crate::export_project::flattener_scripts as flt;
 use flt::token::Token;
 use flt::token::Token::*;
 

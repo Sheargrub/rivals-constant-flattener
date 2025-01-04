@@ -3,7 +3,7 @@ mod scanner;
 mod reader;
 mod flattener;
 
-use crate::export_project::flatten_file as flt;
+use crate::export_project::flattener_scripts as flt;
 use flt::scanner::*;
 use flt::flattener::*;
 use std::collections::HashMap;

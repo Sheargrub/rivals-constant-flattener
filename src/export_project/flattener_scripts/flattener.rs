@@ -1,4 +1,4 @@
-use crate::export_project::flatten_file as flt;
+use crate::export_project::flattener_scripts as flt;
 use flt::token::Token;
 use flt::token::Token::*;
 use std::collections::HashMap;
@@ -32,7 +32,6 @@ impl Flattener {
 
         // For safe whitespace stripping
         let mut escape_handled = false;
-        let mut needs_space = true;
 
         // For stripping RCF user event
         let mut closing_user_event = false;
@@ -71,18 +70,18 @@ impl Flattener {
                     self.flush_stack(true);
                     if !self.skips_whitespace() {
                         self.output.push('\n');
-                        needs_space = false;
+                        self.needs_space = false;
                     } else if !escape_handled {
                         self.output.push('\n');
                         escape_handled = true;
-                        needs_space = false;
+                        self.needs_space = false;
                     }
                     closing_user_event = false;
                     eating_semicolon = false;
                 }
                 Semicolon => {
                     self.flush_stack(false);
-                    needs_space = false;
+                    self.needs_space = false;
                     if !eating_semicolon && (!self.skips_whitespace() || !escape_handled) {
                         self.output.push(';');
                     }
@@ -94,13 +93,16 @@ impl Flattener {
                     self.flush_stack(true);
                     if !self.skips_whitespace() {
                         self.output.push_str(&s);
+                    } else if self.needs_space {
+                        self.output.push(' ');
+                        self.needs_space = false;
                     }
                     closing_user_event = false;
                 },
 
                 LongComment(s) => {
                     self.flush_stack(false);
-                    needs_space = self.skips_comments();
+                    self.needs_space = self.skips_comments();
                     if !self.skips_comments() {
                         self.output.push_str(&s);
                         escape_handled = false;
@@ -109,7 +111,7 @@ impl Flattener {
                 },
                 ShortComment(s) => {
                     self.flush_stack(false);
-                    needs_space = self.skips_comments();
+                    self.needs_space = self.skips_comments();
                     if !self.skips_comments() {
                         self.output.push_str(&s);
                         escape_handled = false;
@@ -120,12 +122,11 @@ impl Flattener {
                 Identifier(s) => {
                     if let Some(val) = map.get(s) {
                         // Match should correspond to a constant,
-                        // so toss out the reference self.stack.
-                        if needs_space && self.skips_whitespace() { self.output.push(' ') };
-                        self.output.push_str(&self.stack);
+                        // so insert that and toss out the contents of self.stack.
+                        if self.needs_space && self.skips_whitespace() { self.output.push(' ') };
                         self.output.push_str(&val);
                         self.stack = String::new();
-                        
+                        self.needs_space = true;
                     }
                     else { // This implicitly catches user_event calls, too
                         self.stack.push_str(&s);
@@ -140,9 +141,9 @@ impl Flattener {
                         self.stack.push('.');
                     } else {
                         self.output.push('.');
+                        self.needs_space = false;
                     }
                     escape_handled = false;
-                    needs_space = true;
                     closing_user_event = false;
                     eating_semicolon = false;
                 }
@@ -153,12 +154,12 @@ impl Flattener {
                         closing_user_event = true;
                     } else {
                         self.flush_stack(true);
-                        if needs_space && self.skips_whitespace() { self.output.push(' ') };
+                        if self.needs_space && self.skips_whitespace() { self.output.push(' ') };
                         self.output.push_str(&s);
                         closing_user_event = false;
                     }
                     
-                    needs_space = true;
+                    self.needs_space = true;
                     escape_handled = false;
                     eating_semicolon = false;
                 },
@@ -168,7 +169,7 @@ impl Flattener {
                     self.output.push_str(&s);
 
                     escape_handled = s == ","; 
-                    needs_space = false;
+                    self.needs_space = false;
                     closing_user_event = false;
                     eating_semicolon = false;
                 },
@@ -182,7 +183,7 @@ impl Flattener {
                     }
 
                     escape_handled = true;
-                    needs_space = false;
+                    self.needs_space = false;
                     closing_user_event = false;
                     eating_semicolon = false;
                 },
@@ -199,7 +200,7 @@ impl Flattener {
                     }
 
                     escape_handled = s == "}"; // need to test if ) and ] behave nicely
-                    needs_space = false;
+                    self.needs_space = false;
                     closing_user_event = false;
                 },
 
@@ -207,7 +208,7 @@ impl Flattener {
                     self.flush_stack(false);
                     self.output.push('=');
                     escape_handled = false;
-                    needs_space = false;
+                    self.needs_space = false;
                     closing_user_event = false;
                     eating_semicolon = false;
                 },
@@ -231,7 +232,7 @@ impl Flattener {
             if self.needs_space && self.skips_whitespace() { self.output.push(' ') };
             self.output.push_str(&self.stack);
             self.stack = String::new();
-            if set_needs_space { self.needs_space = true; }
+            self.needs_space = true;
         }
     }
 }
