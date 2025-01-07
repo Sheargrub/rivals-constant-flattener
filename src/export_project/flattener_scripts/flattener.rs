@@ -44,7 +44,7 @@ impl Flattener {
             } }
             else { match t {
                 IgnoreBegin => {
-                    self.flush_stack(true);
+                    self.flush_stack();
                     ignoring = true;
                     closing_user_event = false;
                     eating_semicolon = false;
@@ -54,20 +54,20 @@ impl Flattener {
                 }
 
                 DeformatBegin => {
-                    self.flush_stack(true);
+                    self.flush_stack();
                     self.deformat_active = true;
                     closing_user_event = false;
                     eating_semicolon = false;
                 }
                 DeformatEnd => {
-                    self.flush_stack(true);
+                    self.flush_stack();
                     self.deformat_active = false;
                     closing_user_event = false;
                     eating_semicolon = false;
                 }
 
                 NewLine => {
-                    self.flush_stack(true);
+                    self.flush_stack();
                     if !self.skips_whitespace() {
                         self.output.push('\n');
                         self.needs_space = false;
@@ -80,7 +80,7 @@ impl Flattener {
                     eating_semicolon = false;
                 }
                 Semicolon => {
-                    self.flush_stack(false);
+                    self.flush_stack();
                     self.needs_space = false;
                     if !eating_semicolon && (!self.skips_whitespace() || !escape_handled) {
                         self.output.push(';');
@@ -90,7 +90,7 @@ impl Flattener {
                     eating_semicolon = false;
                 }
                 Whitespace(s) => {
-                    self.flush_stack(true);
+                    self.flush_stack();
                     if !self.skips_whitespace() {
                         self.output.push_str(&s);
                     } else if self.needs_space {
@@ -101,7 +101,7 @@ impl Flattener {
                 },
 
                 LongComment(s) => {
-                    self.flush_stack(false);
+                    self.flush_stack();
                     self.needs_space = self.skips_comments();
                     if !self.skips_comments() {
                         self.output.push_str(&s);
@@ -110,7 +110,7 @@ impl Flattener {
                     closing_user_event = false;
                 },
                 ShortComment(s) => {
-                    self.flush_stack(false);
+                    self.flush_stack();
                     self.needs_space = self.skips_comments();
                     if !self.skips_comments() {
                         self.output.push_str(&s);
@@ -153,7 +153,7 @@ impl Flattener {
                         self.stack.push_str(&s);
                         closing_user_event = true;
                     } else {
-                        self.flush_stack(true);
+                        self.flush_stack();
                         if self.needs_space && self.skips_whitespace() { self.output.push(' ') };
                         self.output.push_str(&s);
                         closing_user_event = false;
@@ -165,7 +165,7 @@ impl Flattener {
                 },
 
                 Symbol(s) => {
-                    self.flush_stack(false);
+                    self.flush_stack();
                     self.output.push_str(&s);
 
                     escape_handled = s == ","; 
@@ -178,7 +178,7 @@ impl Flattener {
                     if self.stack == "user_event" && s == "(" {
                         self.stack.push_str(&s);
                     } else {
-                        self.flush_stack(false);
+                        self.flush_stack();
                         self.output.push_str(&s);
                     }
 
@@ -194,7 +194,7 @@ impl Flattener {
                         self.stack = String::new();
                         eating_semicolon = true;
                     } else {
-                        self.flush_stack(false);
+                        self.flush_stack();
                         self.output.push_str(&s);
                         eating_semicolon = false;
                     }
@@ -205,7 +205,7 @@ impl Flattener {
                 },
 
                 Equal => {
-                    self.flush_stack(false);
+                    self.flush_stack();
                     self.output.push('=');
                     escape_handled = false;
                     self.needs_space = false;
@@ -227,7 +227,7 @@ impl Flattener {
         self.skip_comments || self.deformat_active
     }
 
-    fn flush_stack(&mut self, set_needs_space: bool) {
+    fn flush_stack(&mut self) {
         if self.stack != "" {
             if self.needs_space && self.skips_whitespace() { self.output.push(' ') };
             self.output.push_str(&self.stack);

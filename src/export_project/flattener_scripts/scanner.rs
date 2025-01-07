@@ -82,13 +82,6 @@ impl RcfScanner {
         }
     }
 
-    // Returns false if the scanner cannot provide output.
-    // Returns none if the scanner has yet to attempt parsing its string.
-    pub fn is_valid(&self) -> Option<bool> {
-        if self.inited { Some(self.valid) }
-        else { None }
-    }
-
     fn is_at_end(&self) -> bool {
         self.current >= self.source.len()
     } 

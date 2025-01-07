@@ -1,5 +1,4 @@
 use std::env;
-use std::process;
 use rivals_constant_flattener::*;
 
 fn main() {
