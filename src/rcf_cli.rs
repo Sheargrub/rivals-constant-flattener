@@ -1,3 +1,5 @@
+use std::io;
+use std::fs;
 use crate::export_project::*;
 
 pub struct Flags {
@@ -68,7 +70,7 @@ pub fn cli_check_source_valid(src: &str) -> Result<(), String> {
 pub fn cli_check_dest_valid(dest: &str, flags: &Flags) -> Result<(), String> {
     match flags {
         Flags{ block_overwrite: true, .. } => cli_dest_empty(dest),
-        Flags{ do_overwrite: true, .. } => Ok(()),
+        Flags{ do_overwrite: true, .. } => cli_dest_overwrite(dest),
         _ => cli_dest_noisy(dest),
     }
 }
@@ -79,14 +81,19 @@ fn cli_dest_noisy(dest: &str) -> Result<(), String> {
     match get_export_type(dest_copy) {
         Some(_) => {
             loop {
-                println!("There appears to be an existing project at {dest}. Overwrite it? (Y/N)");
-                let input = "y"; // TODO: get input, lowercase it
-                match input {
-                    "y" | "yes" => {
+                println!("There appears to be an existing project at: {dest}");
+                println!("Overwrite it? (Y/N)");
+                let mut input = String::new();
+                io::stdin().read_line(&mut input)
+                    .expect("Failed to read line");
+                let input = input.to_lowercase();
+                
+                match input.as_str() {
+                    "y\r\n" | "yes\r\n" | "y\n" | "yes\n" => {
                         println!("Overwrite confirmed, continuing...");
-                        return Ok(());
+                        return cli_dest_overwrite(dest);
                     }
-                    "n" | "no" => {
+                    "n\r\n" | "no\r\n" | "n\n" | "no\n" => {
                         return Err(String::from("Overwrite canceled."));
                     }
                     _ => eprintln!("Unrecognized input."),
@@ -98,15 +105,29 @@ fn cli_dest_noisy(dest: &str) -> Result<(), String> {
 }
 
 fn cli_dest_empty(dest: &str) -> Result<(), String> {
-    let dir_exists = false; // TODO: check if a non-empty directory exists
-    if dir_exists {
+    let dir = match fs::read_dir(dest) {
+        Ok(d) => d,
+        Err(e) => return Err(e.to_string()),
+    };
+    if dir.count() != 0 {
         Err(String::from("Destination folder is non-empty (use -o to enable overwriting)"))
     } else {
         Ok(())
     }
 }
 
+// THIS FUNCTION DELETES ALL CONTENTS AT THE DESTINATION!
+// Use with care!
+fn cli_dest_overwrite(dest: &str) -> Result<(), String> {
+    _ = fs::remove_dir_all(dest);
+    Ok(())
+}
+
 // TODO
 pub fn cli_get_ue(ue_str: &str) -> Result<u8, String> {
-    Ok(2)
+    if let Ok(num) = ue_str.parse::<u8>() {
+        Ok(num)
+    } else {
+        Err(String::from("Provided user_event # is invalid"))
+    }
 }

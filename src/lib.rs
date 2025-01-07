@@ -73,23 +73,23 @@ fn run_cli_noisy(args: Vec<String>, flags: Flags) {
 fn run_cli_silent(args: Vec<String>, flags: Flags) {
 
     // Get user event #
-    let user_event = match cli_get_ue(&args[2]) {
+    let user_event = match cli_get_ue(&args[3]) {
         Ok(ue) => ue,
         Err(_) => process::exit(64),
     };
 
     // Ensure validity of input
-    if let Err(_) = cli_check_source_valid(&args[0]) {
+    if let Err(_) = cli_check_source_valid(&args[1]) {
         process::exit(65);
     }
 
     // See if there's an output directory
-    if let Err(_) = cli_check_dest_valid(&args[1], &flags) {
+    if let Err(_) = cli_check_dest_valid(&args[2], &flags) {
         process::exit(66);
     }
 
     // Perform export
-    if let Err(e) = export_project(&args[0], &args[1], user_event, flags.strip_whitespace, flags.strip_comments) {
+    if let Err(_) = export_project(&args[1], &args[2], user_event, flags.strip_whitespace, flags.strip_comments) {
         process::exit(70);
     }
 }

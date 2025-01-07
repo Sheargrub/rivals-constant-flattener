@@ -1,7 +1,6 @@
 mod include_list;
 mod fetch_project;
 mod flattener_scripts;
-mod write_project;
 
 use std::vec::Vec;
 use std::fs;
