@@ -11,6 +11,10 @@ use crate::export_project as rcf;
 use rcf::fetch_project::*;
 use rcf::flattener_scripts::*;
 
+pub fn get_export_type(src: &str) -> Option<u8> {
+    get_project_type(src)
+}
+
 pub fn export_project(src: &str, dest: &str, user_event: u8, skip_whitespace: bool, skip_comments: bool) -> Result<(), String> {
 
     let _ = fs::create_dir_all(dest); // not especially worried about errors on this one
@@ -68,36 +72,4 @@ fn apply_trailing_slash(s: &str) -> String {
         s.push('/');
     }
     s.iter().collect::<String>()
-}
-
-
-// \/ ---- DELETE LATER ---- \/ \\
-
-pub fn do_test_flatten() {
-    let test_src_path = r"C:\Users\Shear\Documents\Workshop Files\commando-rcf-src/scripts/user_event2.gml";
-    let test_src = fs::read_to_string(test_src_path).expect("Read failed");
-    let map = flattener_scripts::get_constants_map(&test_src).expect("Mapping failed");
-    //println!("{:?}", map);
-
-    let test_tgt_path = r"C:\Users\Shear\Documents\Programming\Rust\Rivals Constant Flattener\rivals-constant-flattener\test_inputs\user_event4.gml";
-    let test_tgt = fs::read_to_string(test_tgt_path).expect("Read failed");
-    println!("\n{}", flattener_scripts::flatten_file(&test_tgt, &map, 2, true, true).expect("Flattening failed"));
-}
-
-pub fn do_test_include() {
-    let src_path = "./test_inputs/rcf_include.txt";
-    let src = fs::read_to_string(src_path).expect("Read failed");
-    println!("{:?}", include_list::IncludeList::construct(&src))
-}
-
-pub fn do_test_fetch() {
-    let src_path = r"C:\Users\Shear\Documents\Workshop Files\commando-rcf-src\";
-    let result = fetch_project::fetch_project(src_path, 2);
-    println!("{:?}", result);
-}
-
-pub fn do_test_export() {
-    let src_path = r"C:\Users\Shear\Documents\Workshop Files\commando-rcf-src\";
-    let dest_path = r"C:\Users\Shear\AppData\Local\RivalsofAether\workshop\commando-rcf-dest";
-    println!("{:?}", export_project(src_path, dest_path, 2, false, false));
 }
