@@ -1,5 +1,4 @@
 pub mod export_project;
-pub mod export_config;
 mod rcf_cli;
 
 use std::process;
@@ -68,6 +67,18 @@ fn run_cli_noisy(args: Vec<String>, flags: Flags) {
         process::exit(70);
     }
 
+    // Apply export_config file
+    match export_config(&args[1], &args[2]) {
+        Ok(true) => println!("Created new config_export.ini file in source folder. This will be used in lieu of config.ini for future exports."),
+        Ok(false) => (),
+        Err(e) => {
+            eprintln!("Unexpected error while exporting config file:");
+            eprintln!("    {e}");
+            eprintln!("Due to the nature of this error, it is likely that the project was otherwise exported successfully.");
+            process::exit(71);
+        }
+    }
+
     println!("Export completed successfully.");
 }
 
@@ -92,5 +103,11 @@ fn run_cli_silent(args: Vec<String>, flags: Flags) {
     // Perform export
     if let Err(_) = export_project(&args[1], &args[2], user_event, flags.strip_whitespace, flags.strip_comments) {
         process::exit(70);
+    }
+
+    // Apply export_config file
+    match export_config(&args[1], &args[2]) {
+        Ok(_) => (),
+        Err(_) => process::exit(71),
     }
 }

@@ -67,7 +67,6 @@ impl RcfScanner {
                     '\r' => self.process_whitespace(),
                     '/' => self.process_comment(),
                     '"' | '\'' | '`' => self.process_string(),
-                    '\'' => self.process_string(),
                     '0'..='9' => self.process_number(),
                     'A'..='Z' | 'a'..='z' | '_' => self.process_identifier(),
 

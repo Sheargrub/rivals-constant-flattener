@@ -51,17 +51,40 @@ pub fn export_project(src: &str, dest: &str, user_event: u8, skip_whitespace: bo
             if let Some("gml") = e.to_str() {
                 let src_script = fs::read_to_string(&src_path).expect(&err1);
                 let dest_script = flatten_file(&src_script, &constants_map, user_event, skip_whitespace, skip_comments)?;
-                fs::write(dest_path, dest_script).expect(&err2);
+                fs::write(&dest_path, &dest_script).expect(&err2);
             } else {
-                fs::copy(src_path, dest_path).expect(&err3);
+                fs::copy(&src_path, &dest_path).expect(&err3);
             }
         } else {
-            fs::copy(src_path, dest_path).expect(&err3);
+            fs::copy(&src_path, &dest_path).expect(&err3);
         }
     }
 
     Ok(())
 
+}
+
+// Boolean output denotes whether a new config_export.ini file was initialized
+pub fn export_config(src: &str, dest: &str) -> Result<bool, String> {
+    let src_path = apply_trailing_slash(src);
+    let mut src_conf_path = src_path.clone();
+    src_conf_path.push_str("config_export.ini");
+    let mut src_origconf_path = src_path.clone();
+    src_origconf_path.push_str("config.ini");
+    let mut dest_conf_path = apply_trailing_slash(dest);
+    dest_conf_path.push_str("config.ini");
+
+    if let Ok(true) = fs::exists(&src_conf_path) {
+        match fs::copy(&src_conf_path, &dest_conf_path) {
+            Ok(_) => Ok(false),
+            Err(e) => Err(e.to_string()),
+        }
+    } else {
+        match fs::copy(&src_origconf_path, &src_conf_path) {
+            Ok(_) => Ok(true),
+            Err(e) => Err(e.to_string()),
+        }
+    }
 }
 
 fn apply_trailing_slash(s: &str) -> String {
