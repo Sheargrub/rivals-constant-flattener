@@ -2,6 +2,7 @@ mod token;
 mod scanner;
 mod reader;
 mod flattener;
+mod compressor;
 
 use crate::export_project::flattener_scripts as flt;
 use flt::scanner::*;

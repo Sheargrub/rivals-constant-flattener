@@ -66,10 +66,10 @@ impl RcfScanner {
                     '\t' => self.process_whitespace(),
                     '\r' => self.process_whitespace(),
                     '/' => self.process_comment(),
-                    '"' => self.process_string(),
+                    '"' | '\'' | '`' => self.process_string(),
                     '\'' => self.process_string(),
                     '0'..='9' => self.process_number(),
-                    'A'..='z' => self.process_identifier(),
+                    'A'..='Z' | 'a'..='z' | '_' => self.process_identifier(),
 
                     c => self.add_token(Symbol(String::from(c))),
                 };
@@ -224,29 +224,29 @@ impl RcfScanner {
 
 }
 
-fn is_number(c: char) -> bool {
+pub fn is_number(c: char) -> bool {
     match c {
         '0'..='9' => true,
         _ => false,
     }
 }
 
-fn is_alpha(c: char) -> bool {
+pub fn is_alpha(c: char) -> bool {
     match c {
         'A'..='Z'|'a'..='z' => true,
         _ => false,
     }
 }
 
-fn is_identifier_char(c: char) -> bool {
+pub fn is_identifier_char(c: char) -> bool {
     is_alpha(c) || is_number(c) || c == '_'
 }
 
-fn is_skippable(c: char) -> bool {
-        match c {
-            ' ' => true,
-            '\t' => true,
-            '\r' => true,
-            _ => false,
-        }
+pub fn is_skippable(c: char) -> bool {
+    match c {
+        ' ' => true,
+        '\t' => true,
+        '\r' => true,
+        _ => false,
     }
+}

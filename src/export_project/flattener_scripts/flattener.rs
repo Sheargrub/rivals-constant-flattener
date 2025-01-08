@@ -1,6 +1,7 @@
 use crate::export_project::flattener_scripts as flt;
 use flt::token::Token;
 use flt::token::Token::*;
+use flt::compressor::compress_whitespace;
 use std::collections::HashMap;
 
 pub struct Flattener {
@@ -216,7 +217,9 @@ impl Flattener {
             } };
         }
         self.output.push_str(&self.stack);
-        Ok(self.output.clone())
+
+        if self.skip_whitespace { Ok(compress_whitespace(&self.output)) }
+        else { Ok(self.output.clone()) }
     }
 
     fn skips_whitespace(&self) -> bool {
