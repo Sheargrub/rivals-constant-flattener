@@ -3,6 +3,7 @@ mod fetch_project;
 mod flattener_scripts;
 
 use std::vec::Vec;
+use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 
@@ -14,18 +15,24 @@ pub fn get_export_type(src: &str) -> Option<u8> {
     get_project_type(src)
 }
 
-pub fn export_project(src: &str, dest: &str, user_event: u8, skip_whitespace: bool, skip_comments: bool) -> Result<(), String> {
+pub fn export_project(src: &str, dest: &str, user_event: Option<u8>, skip_whitespace: bool, skip_comments: bool, inert_run: bool) -> Result<(), String> {
 
     let _ = fs::create_dir_all(dest); // not especially worried about errors on this one
 
-    let (files, ue_file) = fetch_project(src, user_event)?;
+    let (files, ue_file) = fetch_project(src, user_event, inert_run)?;
     let src = apply_trailing_slash(src);
     let dest = apply_trailing_slash(dest);
-
-    let mut ue_path = src.clone();
-    ue_path.push_str(&ue_file);
-    let ue_script = fs::read_to_string(&ue_path).expect(&format!("Failed to read file {}", ue_path));
-    let constants_map = get_constants_map(&ue_script)?;
+    
+    let constants_map = {
+        if let Some(ue_file) = ue_file {
+            let mut ue_path = src.clone();
+            ue_path.push_str(&ue_file);
+            let ue_script = fs::read_to_string(&ue_path).expect(&format!("Failed to read file {}", ue_path));
+            get_constants_map(&ue_script)?
+        } else {
+            HashMap::new()
+        }
+    };
 
     for f in files.iter() {
         let mut src_path = src.clone();
@@ -71,7 +78,7 @@ pub fn export_project(src: &str, dest: &str, user_event: u8, skip_whitespace: bo
 }
 
 // Boolean output denotes whether a new config_export.ini file was initialized
-pub fn export_config(src: &str, dest: &str) -> Result<bool, String> {
+pub fn export_config(src: &str, dest: &str, inert_run: bool) -> Result<bool, String> {
     let src_path = apply_trailing_slash(src);
     let mut src_conf_path = src_path.clone();
     src_conf_path.push_str("config_export.ini");
@@ -85,9 +92,34 @@ pub fn export_config(src: &str, dest: &str) -> Result<bool, String> {
             Ok(_) => Ok(false),
             Err(e) => Err(e.to_string()),
         }
-    } else {
+    } else if !inert_run {
         match fs::copy(&src_origconf_path, &src_conf_path) {
             Ok(_) => Ok(true),
+            Err(e) => Err(e.to_string()),
+        }
+    } else {
+        Ok(false)
+    }
+}
+
+pub fn export_project_dry(src: &str) ->  Result<(), String> {
+    fetch_project(src, None, false)?;
+    init_config_dry(src)?;
+    Ok(())
+}
+
+pub fn init_config_dry(src: &str) -> Result<(), String> {
+    let src_path = apply_trailing_slash(src);
+    let mut src_conf_path = src_path.clone();
+    src_conf_path.push_str("config_export.ini");
+    let mut src_origconf_path = src_path.clone();
+    src_origconf_path.push_str("config.ini");
+
+    if let Ok(true) = fs::exists(&src_conf_path) {
+        Ok(())
+    } else {
+        match fs::copy(&src_origconf_path, &src_conf_path) {
+            Ok(_) => Ok(()),
             Err(e) => Err(e.to_string()),
         }
     }

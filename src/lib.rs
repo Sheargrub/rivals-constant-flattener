@@ -12,7 +12,7 @@ pub fn run_cli(args: Vec<String>) {
         cli_print_help();
         process::exit(0);
     }
-    if args.len() < 4 {
+    if args.len() < 3 {
         cli_print_usage();
         process::exit(63);
     }
@@ -28,22 +28,13 @@ pub fn run_cli(args: Vec<String>) {
         }
     };
 
-    if flags.is_silent { run_cli_silent(args, flags); } 
+    if flags.dry_run { run_cli_dry(args, flags); }
+    else if flags.is_silent { run_cli_silent(args, flags); } 
     else { run_cli_noisy(args, flags); }
 
 }
 
 fn run_cli_noisy(args: Vec<String>, flags: Flags) {
-
-    // Get user event #
-    let user_event = match cli_get_ue(&args[3]) {
-        Ok(ue) => ue,
-        Err(e) => {
-            eprintln!("Error in user_event:");
-            eprintln!("    {e}");
-            process::exit(64);
-        }
-    };
 
     // Ensure validity of source
     if let Err(e) = cli_check_source_valid(&args[1]) {
@@ -60,14 +51,14 @@ fn run_cli_noisy(args: Vec<String>, flags: Flags) {
     }
 
     // Perform export
-    if let Err(e) = export_project(&args[1], &args[2], user_event, flags.strip_whitespace, flags.strip_comments) {
+    if let Err(e) = export_project(&args[1], &args[2], flags.user_event, flags.strip_whitespace, flags.strip_comments, flags.inert_run) {
         eprintln!("Unexpected error while exporting project:");
         eprintln!("    {e}");
         process::exit(70);
     }
 
     // Apply export_config file
-    match export_config(&args[1], &args[2]) {
+    match export_config(&args[1], &args[2], flags.inert_run) {
         Ok(true) => println!("Created new config_export.ini file in source folder. This will be used in lieu of config.ini for future exports."),
         Ok(false) => (),
         Err(e) => {
@@ -83,12 +74,6 @@ fn run_cli_noisy(args: Vec<String>, flags: Flags) {
 
 fn run_cli_silent(args: Vec<String>, flags: Flags) {
 
-    // Get user event #
-    let user_event = match cli_get_ue(&args[3]) {
-        Ok(ue) => ue,
-        Err(_) => process::exit(64),
-    };
-
     // Ensure validity of input
     if let Err(_) = cli_check_source_valid(&args[1]) {
         process::exit(65);
@@ -100,13 +85,33 @@ fn run_cli_silent(args: Vec<String>, flags: Flags) {
     }
 
     // Perform export
-    if let Err(_) = export_project(&args[1], &args[2], user_event, flags.strip_whitespace, flags.strip_comments) {
+    if let Err(_) = export_project(&args[1], &args[2], flags.user_event, flags.strip_whitespace, flags.strip_comments, flags.inert_run) {
         process::exit(70);
     }
 
     // Apply export_config file
-    match export_config(&args[1], &args[2]) {
+    match export_config(&args[1], &args[2], flags.inert_run) {
         Ok(_) => (),
         Err(_) => process::exit(71),
+    }
+}
+
+fn run_cli_dry(args: Vec<String>, flags: Flags) {
+    // Ensure validity of input
+    if let Err(e) = cli_check_source_valid(&args[1]) {
+        if !flags.is_silent {
+            eprintln!("Error with source directory:");
+            eprintln!("    {e}");
+        }
+        process::exit(65);
+    }
+
+    // Dry-export project
+    if let Err(e) = export_project_dry(&args[1]) {
+        if !flags.is_silent {
+            eprintln!("Unexpected error while dry-exporting project:");
+            eprintln!("    {e}");
+        }
+        process::exit(70);
     }
 }

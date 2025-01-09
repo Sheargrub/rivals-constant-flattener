@@ -15,7 +15,7 @@ pub fn get_constants_map(src: &str) -> Result<HashMap<String, String>, String> {
     reader::get_constants_map(&tokens)
 } 
 
-pub fn flatten_file(src: &str, map: &HashMap<String, String>, user_event: u8, skip_whitespace: bool, skip_comments: bool) -> Result<String, String> {
+pub fn flatten_file(src: &str, map: &HashMap<String, String>, user_event: Option<u8>, skip_whitespace: bool, skip_comments: bool) -> Result<String, String> {
     let mut s = RcfScanner::new(src);
     let tokens = devectorize_errors(s.scan_tokens())?;
     let mut f = Flattener::new(user_event, skip_whitespace, skip_comments);

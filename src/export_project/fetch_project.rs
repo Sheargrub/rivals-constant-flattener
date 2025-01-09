@@ -53,7 +53,7 @@ pub fn get_project_type(root: &str) -> Option<u8> {
     }
 }
 
-pub fn get_include(root: &str, project_type: u8) -> Result<IncludeList, String> {
+pub fn get_include(root: &str, project_type: u8, inert_run: bool) -> Result<IncludeList, String> {
     if 3 < project_type { return Err(format!("Invalid project type for project in directory {}", root)) };
 
     let mut include_path = String::from(root);
@@ -62,8 +62,13 @@ pub fn get_include(root: &str, project_type: u8) -> Result<IncludeList, String> 
     if end != "/" && end != "\\" { include_path.push('/'); }
     include_path.push_str("rcf_include.txt");
 
-    // If include file does not exist, create it
+    // If include file does not exist...    
     if let Err(_) = File::open(&include_path) {
+        // On inert runs: simply return the default include
+        if inert_run {
+            return Ok(IncludeList::construct(&make_raw_include(project_type))?);
+        }
+        // On non-inert runs: create the default include in the source directory
         let f = fs::write(&include_path, make_raw_include(project_type));
         if let Err(_) = f {
             return Err(format!("Could not write include file to project in directory {}", root));
@@ -79,7 +84,7 @@ pub fn get_include(root: &str, project_type: u8) -> Result<IncludeList, String> 
 
 }
 
-pub fn fetch_project(root: &str, user_event: u8) -> Result<(Vec<String>, String), String> {
+pub fn fetch_project(root: &str, user_event: Option<u8>, inert_run: bool) -> Result<(Vec<String>, Option<String>), String> {
     // Ensure that valid project is being fetched
     let project_type = get_project_type(root);
     if let None = project_type {
@@ -88,16 +93,23 @@ pub fn fetch_project(root: &str, user_event: u8) -> Result<(Vec<String>, String)
     let project_type = project_type.unwrap();
 
     // Get include list
-    let incl = Box::new(get_include(root, project_type)?);
+    let incl = Box::new(get_include(root, project_type, inert_run)?);
 
     // Get all files
-    let ue_name = format!("user_event{}.gml", user_event);
-    match visit_folder(root, root, &ue_name, &incl) {
-        Ok((file_paths, Some(ue_path))) => Ok((file_paths, ue_path)),
-        Ok((_, None)) => {
-            Err(format!("Could not locate {}", ue_name))
-        },
-        Err(_) => Err(format!("Unknown error with project at directory {}", root)),
+    if let Some(ue_num) = user_event {
+        let ue_name = format!("user_event{}.gml", ue_num);
+        match visit_folder(root, root, &ue_name, &incl) {
+            Ok((file_paths, Some(ue_path))) => Ok((file_paths, Some(ue_path))),
+            Ok((_, None)) => {
+                Err(format!("Could not locate {}", ue_name))
+            },
+            Err(_) => Err(format!("Unknown error with project at directory {}", root)),
+        }
+    } else {
+        match visit_folder(root, root, "", &incl) {
+            Ok((file_paths, _)) => Ok((file_paths, None)),
+            Err(_) => Err(format!("Unknown error with project at directory {}", root)),
+        }
     }
 
 }
@@ -169,7 +181,7 @@ fn crop_file_name(root: &str, f: &str) -> Result<String, String> {
     Ok(file_cropped)
 }
 
-fn make_raw_include(project_type: u8) -> &'static str {
+pub fn make_raw_include(project_type: u8) -> &'static str {
     match project_type {
         0 => {
 "fonts/*.ini

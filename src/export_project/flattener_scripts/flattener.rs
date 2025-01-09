@@ -16,8 +16,11 @@ pub struct Flattener {
 
 impl Flattener {
 
-    pub fn new(user_event: u8, skip_whitespace: bool, skip_comments: bool) -> Flattener {
-        let user_event = user_event.to_string();
+    pub fn new(user_event: Option<u8>, skip_whitespace: bool, skip_comments: bool) -> Flattener {
+        let user_event = {
+            if let Some(ue) = user_event { ue.to_string() }
+            else { String::from("/*/*/*/") } // cannot be read as identifier
+        };
         let deformat_active = false;
         let needs_space = false;
         let stack = String::new();
