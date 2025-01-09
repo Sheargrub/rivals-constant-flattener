@@ -6,6 +6,12 @@ RCF also automates most of the irritating parts of converting a character from a
 
 > RCF is designed to minimize the risk of file loss. However, it is always good practice to back up your data before using a tool of this nature. Do not overwrite your development builds with RCF builds!
 
+## What's this for, anyway?
+
+Rivals Workshop projects don't have an especially robust way of handling user-defined constants. ``#macros`` work, but they only apply in the file where they're defined, which makes them too unwieldy for any serious use cases. Meanwhile, defining constants to typical variables works alright, but since Game Maker has to check if the variable links to a valid instance, it comes with a small performance cost, especially if referencing the variable from another object's perspective. Additionally, for more involved projects, having several hundred unchanging primitive instances sitting around around in your character object feels like kind of a waste.
+
+RCF offers a compromise to this problem: tank the small efficiency penalty from using constant variables while you're developing your character, then automatically convert those variables to hard-coded values before uploading the project to the Workshop. While it's a small optimization, it offers the power to parameterize your character's attributes at effectively no cost, which will make maintainence and patches much easier to manage in the long run.
+
 ## Configuring a project for RCF
 In order to use RCF, you'll need to choose a source ``user_event`` script to host your constants. This script should be called from near the top of your character's ``init.gml`` file, which will allow you to fully playtest the character in a pre-export state.
 
@@ -16,6 +22,8 @@ The ``user_event`` script itself can be written in mostly the same way that you 
 - It's best practice to write your constant names in ``ALL_CAPS``, which makes them immediately identifiable as constants and maintains consistency with Rivals' default set of constants.
 
 Additionally, upon exporting your project, RCF will create the files ``rcf_include.txt`` and ``config_export.ini`` in your project's root. ``rcf_include.txt`` will be used in future exports to control which files are exported, while ``config_export.ini`` will be exported in lieu of your character's ``config.ini`` file, allowing you to set a distinct name and version for your release and development builds.
+
+> RCF will automatically account for object references that link back to your constants (e.g. ``other.player_id.CONSTANT``), so feel free to reference constants from the perspectives of articles or enemy players.
 
 ## Exporting a project through RCF
 Run RCF from the command line using this syntax:
