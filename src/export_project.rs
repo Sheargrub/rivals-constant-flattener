@@ -36,6 +36,10 @@ pub fn export_project(src: &str, dest: &str, user_event: u8, skip_whitespace: bo
         dest_path.push_str(f);
         let dest_path = Path::new(&dest_path);
 
+        if src_path == dest_path {
+            return Err(String::from("Cannot use source directory as destination"));
+        }
+
         let extension = src_path.extension();
         let mut ancestors = dest_path.ancestors();
         let _ = ancestors.next(); // Skip once, as the first iteration step is just the original path
@@ -51,7 +55,9 @@ pub fn export_project(src: &str, dest: &str, user_event: u8, skip_whitespace: bo
             if let Some("gml") = e.to_str() {
                 let src_script = fs::read_to_string(&src_path).expect(&err1);
                 let dest_script = flatten_file(&src_script, &constants_map, user_event, skip_whitespace, skip_comments)?;
-                fs::write(&dest_path, &dest_script).expect(&err2);
+                if dest_script != "" {
+                    fs::write(&dest_path, &dest_script).expect(&err2);
+                }
             } else {
                 fs::copy(&src_path, &dest_path).expect(&err3);
             }

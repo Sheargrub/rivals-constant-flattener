@@ -90,7 +90,7 @@ pub fn fetch_project(root: &str, user_event: u8) -> Result<(Vec<String>, String)
     // Get include list
     let incl = Box::new(get_include(root, project_type)?);
 
-    // Get all files (TODO: filter by include)
+    // Get all files
     let ue_name = format!("user_event{}.gml", user_event);
     match visit_folder(root, root, &ue_name, &incl) {
         Ok((file_paths, Some(ue_path))) => Ok((file_paths, ue_path)),
@@ -188,7 +188,9 @@ preview.png
 result_small.png
 charselect.ogg"
         },
-        1 | 2 | 3 => todo!(),
+        1 => panic!("Buddies not yet supported"), // TODO
+        2 => panic!("Stages not yet supported"),
+        3 => panic!("Character skins not yet supported"),
         _ => panic!("Unexpected input to make_include()"),
     }
 }

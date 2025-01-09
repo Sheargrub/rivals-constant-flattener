@@ -46,7 +46,6 @@ fn run_cli_noisy(args: Vec<String>, flags: Flags) {
     };
 
     // Ensure validity of source
-    println!("{}", args[1]);
     if let Err(e) = cli_check_source_valid(&args[1]) {
         eprintln!("Error with source directory:");
         eprintln!("    {e}");

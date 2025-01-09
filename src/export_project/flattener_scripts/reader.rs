@@ -87,7 +87,9 @@ pub fn get_constants_map(source: &Vec<Token>) -> Result<HashMap<String, String>,
                             needs_space = true;
                             can_return = bracket_depth == 0;
                         } else {
-                            return Err(format!("Tried to assign to non-constant identifier {}", s));
+                            value.push_str(&s);
+                            needs_space = true;
+                            can_return = bracket_depth == 0;
                         }
                     } 
                     _ => panic!("Invalid state reached"),

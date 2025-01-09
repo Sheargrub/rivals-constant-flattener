@@ -105,6 +105,7 @@ fn cli_dest_noisy(dest: &str) -> Result<(), String> {
 }
 
 fn cli_dest_empty(dest: &str) -> Result<(), String> {
+    if let Ok(false) = fs::exists(dest) { return Ok(()) };
     let dir = match fs::read_dir(dest) {
         Ok(d) => d,
         Err(e) => return Err(e.to_string()),
@@ -123,7 +124,6 @@ fn cli_dest_overwrite(dest: &str) -> Result<(), String> {
     Ok(())
 }
 
-// TODO
 pub fn cli_get_ue(ue_str: &str) -> Result<u8, String> {
     if let Ok(num) = ue_str.parse::<u8>() {
         Ok(num)

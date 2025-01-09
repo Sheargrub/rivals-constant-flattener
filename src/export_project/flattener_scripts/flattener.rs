@@ -27,6 +27,7 @@ impl Flattener {
 
     pub fn flatten_program(&mut self, ts: &Vec<Token>, map: &HashMap<String, String>) -> Result<String, String> {
         self.output = String::new();
+        let mut is_empty = true;
 
         // For ignore tags
         let mut ignoring = false;
@@ -107,6 +108,7 @@ impl Flattener {
                     if !self.skips_comments() {
                         self.output.push_str(&s);
                         escape_handled = false;
+                        is_empty = false;
                     }
                     closing_user_event = false;
                 },
@@ -116,6 +118,7 @@ impl Flattener {
                     if !self.skips_comments() {
                         self.output.push_str(&s);
                         escape_handled = false;
+                        is_empty = false;
                     }
                     closing_user_event = false;
                 },
@@ -135,6 +138,7 @@ impl Flattener {
                     escape_handled = false;
                     closing_user_event = false;
                     eating_semicolon = false;
+                    is_empty = false;
                 },
 
                 Dot => {
@@ -147,6 +151,7 @@ impl Flattener {
                     escape_handled = false;
                     closing_user_event = false;
                     eating_semicolon = false;
+                    is_empty = false;
                 }
                 
                 Literal(s) => {
@@ -163,6 +168,7 @@ impl Flattener {
                     self.needs_space = true;
                     escape_handled = false;
                     eating_semicolon = false;
+                    is_empty = false;
                 },
 
                 Symbol(s) => {
@@ -173,6 +179,7 @@ impl Flattener {
                     self.needs_space = false;
                     closing_user_event = false;
                     eating_semicolon = false;
+                    is_empty = false;
                 },
 
                 OpenBracket(s) => {
@@ -212,13 +219,15 @@ impl Flattener {
                     self.needs_space = false;
                     closing_user_event = false;
                     eating_semicolon = false;
+                    is_empty = false;
                 },
 
             } };
         }
         self.output.push_str(&self.stack);
 
-        if self.skip_whitespace { Ok(compress_whitespace(&self.output)) }
+        if is_empty { Ok(String::new()) }
+        else if self.skip_whitespace { Ok(compress_whitespace(&self.output)) }
         else { Ok(self.output.clone()) }
     }
 
